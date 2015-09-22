@@ -57,6 +57,13 @@ function run() {
   // Get source dir
   var sourcePath
   sourcePath = Path.join(parent, opts.src || 'mod')
+  try {
+    FS.statSync(sourcePath)
+  }
+  catch (err) {
+    // Abort
+    return
+  }
 
   if (danger) {
     // Get contents and symlink each
@@ -84,12 +91,18 @@ function run() {
     FS.symlinkSync(sourcePath, linkedDirPath, 'junction')
   }
 
-  console.log('calling install script') // DEBUG
-  console.log(1) // DEBUG
   var installFile = opts.install || 'install'
-  console.log('installFile', installFile) // DEBUG
-  require(Path.join(sourcePath, installFile))
-  console.log(2) // DEBUG
+  installFile = Path.join(sourcePath, installFile)
+  var installFileExists
+  try {
+    require.resolve(installFile)
+    installFileExists = true
+  }
+  catch (err) {
+  }
+  if (installFileExists) {
+    require(installFile)
+  }
 
   return true
 }
